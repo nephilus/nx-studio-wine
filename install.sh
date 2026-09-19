@@ -2,16 +2,19 @@
 set -eu
 
 usage() {
-  printf 'Usage: %s /path/to/NX-Studio-installer.exe\n' "$0" >&2
+  printf 'Usage: %s NX-Studio-installer.exe WebView2-Runtime-installer.exe\n' "$0" >&2
   exit 2
 }
 
-[ "$#" -eq 1 ] || usage
+[ "$#" -eq 2 ] || usage
 installer=$1
-[ -f "$installer" ] || {
-  printf 'Installer not found: %s\n' "$installer" >&2
-  exit 1
-}
+webview2_installer=$2
+for file in "$installer" "$webview2_installer"; do
+  [ -f "$file" ] || {
+    printf 'Installer not found: %s\n' "$file" >&2
+    exit 1
+  }
+done
 
 for command in wine wineboot xdotool; do
   command -v "$command" >/dev/null 2>&1 || {
@@ -33,11 +36,24 @@ wineboot -u
 winecfg -v win11
 wine "$installer"
 
+# NX Studio's Nikon ID/OAuth window embeds Microsoft Edge WebView2.
+# Keep the prefix on Windows 11 while using Wine's per-app compatibility
+# override for the WebView2 process.
+wine reg add 'HKCU\Software\Wine\AppDefaults\msedgewebview2.exe' \
+  /v Version /t REG_SZ /d win7 /f
+wine "$webview2_installer" /silent /install
+
 nx_exe="$prefix/drive_c/Program Files/Nikon/NXStudio/NXStudio.exe"
 if [ ! -f "$nx_exe" ]; then
   printf '%s\n' 'NX Studio executable was not found after installation.' >&2
   exit 1
 fi
+webview2_root="$prefix/drive_c/Program Files (x86)/Microsoft/EdgeWebView/Application"
+if ! find "$webview2_root" -name msedgewebview2.exe -print -quit 2>/dev/null | grep -q .; then
+  printf '%s\n' 'Microsoft Edge WebView2 Runtime was not found after installation.' >&2
+  exit 1
+fi
+
 
 install -m 0755 "$repo_dir/scripts/nx-studio" "$launcher_dir/nx-studio"
 install -m 0644 "$repo_dir/packaging/nx-studio.desktop" "$desktop_dir/nx-studio.desktop"

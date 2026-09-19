@@ -8,6 +8,7 @@ This project does **not** redistribute NX Studio. Download the Windows installer
 
 - NX Studio 1.10.1
 - Wine Staging 11.17
+- Microsoft Edge WebView2 Runtime 153.0.4234.32
 - Hyprland on Wayland
 - Two HiDPI monitors at scale 2
 - Arch Linux / Omarchy
@@ -30,6 +31,8 @@ The included launcher:
 
 The optional Hyprland rule maximizes NX Studio to the monitor/workspace where it opens.
 
+NX Studio's Nikon ID sign-in and OAuth flow require the **Microsoft Edge WebView2 Runtime**. This is the runtime redistributable, not the WebView2 SDK used by developers. The installer adds the Runtime to the same Wine prefix and applies the per-process Wine compatibility override required by the tested setup.
+
 ## Requirements
 
 Arch Linux:
@@ -43,11 +46,14 @@ Also install the 32-bit graphics/audio libraries required by your Wine package. 
 ## Install
 
 1. Download the current Windows installer from the [official Nikon Download Center](https://downloadcenter.nikonimglib.com/en/products/564/NX_Studio.html).
-2. Clone this repository.
-3. Run:
+2. Download the x64 **Evergreen Standalone Installer** for the Microsoft Edge WebView2 Runtime from [Microsoft's official WebView2 page](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
+3. Clone this repository.
+4. Run:
 
 ```sh
-./install.sh ~/Downloads/S-NXSTDO-*.exe
+./install.sh \
+  ~/Downloads/S-NXSTDO-*.exe \
+  ~/Downloads/MicrosoftEdgeWebView2RuntimeInstallerX64.exe
 ```
 
 The installer creates or updates:
@@ -56,7 +62,7 @@ The installer creates or updates:
 - Launcher: `~/.local/bin/nx-studio`
 - Desktop entry: `~/.local/share/applications/nx-studio.desktop`
 
-The Nikon installer is interactive. Complete it normally. Its bundled Microsoft Visual C++ runtime is supported in the tested prefix.
+The Nikon installer is interactive. Complete it normally. Its bundled Microsoft Visual C++ runtime is supported in the tested prefix. The WebView2 installer runs silently afterward and is required for the Nikon ID/OAuth login window.
 
 ## Hyprland
 
@@ -100,6 +106,24 @@ It should resolve to `~/.local/bin/nx-studio`. `xdotool` must also be installed 
 ### Black `ImageFrameScreen` window
 
 The patched launcher detects and unmaps this internal helper. Do not kill it: NX Studio uses it as part of its rendering implementation.
+
+### Nikon ID/OAuth login is blank
+
+The login flow is rendered by Microsoft Edge WebView2. Confirm that the Runtime exists inside the NX Studio prefix:
+
+```sh
+find \"$HOME/.local/share/nx-studio/prefix/drive_c/Program Files (x86)/Microsoft/EdgeWebView/Application\" \
+  -name msedgewebview2.exe
+```
+
+The tested setup also has this per-application Wine override:
+
+```sh
+WINEPREFIX=\"$HOME/.local/share/nx-studio/prefix\" wine reg query \
+  'HKCU\\Software\\Wine\\AppDefaults\\msedgewebview2.exe' /v Version
+```
+
+It should report `win7`. Rerun `install.sh` with both installers to repair a missing Runtime or override.
 
 ### UI scale
 
