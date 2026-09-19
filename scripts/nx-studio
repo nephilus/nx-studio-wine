@@ -1,0 +1,46 @@
+#!/bin/sh
+set -u
+
+export WINEPREFIX="${NX_STUDIO_WINEPREFIX:-$HOME/.local/share/nx-studio/prefix}"
+nx_exe="$WINEPREFIX/drive_c/Program Files/Nikon/NXStudio/NXStudio.exe"
+
+if ! command -v wine >/dev/null 2>&1; then
+  printf '%s\n' 'nx-studio: wine is required' >&2
+  exit 127
+fi
+if ! command -v xdotool >/dev/null 2>&1; then
+  printf '%s\n' 'nx-studio: xdotool is required for Wine window fixes' >&2
+  exit 127
+fi
+if [ ! -f "$nx_exe" ]; then
+  printf 'nx-studio: NX Studio is not installed in %s\n' "$WINEPREFIX" >&2
+  exit 1
+fi
+
+wine "$nx_exe" "$@" &
+wine_pid=$!
+hidden_helper=
+
+while kill -0 "$wine_pid" 2>/dev/null; do
+  helper=$(xdotool search --name '^ImageFrameScreen$' 2>/dev/null | tail -n 1)
+  if [ -n "$helper" ] && [ "$helper" != "$hidden_helper" ]; then
+    xdotool windowunmap "$helper"
+    hidden_helper=$helper
+  fi
+
+  main=$(xdotool search --onlyvisible --name '^NX Studio' 2>/dev/null | tail -n 1)
+  dialog=$(xdotool search --name '^Export$' 2>/dev/null | tail -n 1)
+
+  if [ -n "$main" ] && [ -n "$dialog" ]; then
+    eval "$(xdotool getwindowgeometry --shell "$main")"
+    main_x=$X main_y=$Y main_w=$WIDTH main_h=$HEIGHT
+    eval "$(xdotool getwindowgeometry --shell "$dialog")"
+    x=$((main_x + (main_w - WIDTH) / 2))
+    y=$((main_y + (main_h - HEIGHT) / 2))
+    xdotool windowmove "$dialog" "$x" "$y"
+  fi
+
+  sleep 0.2
+done
+
+wait "$wine_pid"
