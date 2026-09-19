@@ -29,15 +29,19 @@ while kill -0 "$wine_pid" 2>/dev/null; do
   fi
 
   main=$(xdotool search --onlyvisible --name '^NX Studio' 2>/dev/null | tail -n 1)
-  dialog=$(xdotool search --name '^Export$' 2>/dev/null | tail -n 1)
-
-  if [ -n "$main" ] && [ -n "$dialog" ]; then
+  if [ -n "$main" ]; then
     eval "$(xdotool getwindowgeometry --shell "$main")"
     main_x=$X main_y=$Y main_w=$WIDTH main_h=$HEIGHT
-    eval "$(xdotool getwindowgeometry --shell "$dialog")"
-    x=$((main_x + (main_w - WIDTH) / 2))
-    y=$((main_y + (main_h - HEIGHT) / 2))
-    xdotool windowmove "$dialog" "$x" "$y"
+
+    for dialog_title in '^Export$' '^Error Renaming File/Folder$'; do
+      dialog=$(xdotool search --name "$dialog_title" 2>/dev/null | tail -n 1)
+      if [ -n "$dialog" ]; then
+        eval "$(xdotool getwindowgeometry --shell "$dialog")"
+        x=$((main_x + (main_w - WIDTH) / 2))
+        y=$((main_y + (main_h - HEIGHT) / 2))
+        xdotool windowmove "$dialog" "$x" "$y"
+      fi
+    done
   fi
 
   sleep 0.2

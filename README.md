@@ -153,6 +153,8 @@ The standard folders verified on the reference system are:
 
 `~/Pictures` is the recommended library root. NX Studio successfully created and updated `NKSC_PARAM` sidecars there through Wine.
 
+NX Studio 1.10.1 can still report `Error Renaming File/Folder` for a writable folder that it currently has open. This is an NX Studio/Wine file-handle behavior, not a Linux permission failure: the same rename succeeds through Wine's `cmd.exe`. Close NX Studio or navigate away from the folder, rename it with the Linux file manager or `mv`, then reopen or refresh NX Studio. The patched launcher centers this error dialog so its complete message remains accessible.
+
 Do not solve permission errors with recursive `chmod 777`. For a Linux-owned folder, restore ownership to the current user and grant only user write access:
 
 ```sh
