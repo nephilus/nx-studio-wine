@@ -54,8 +54,9 @@ if ! find "$webview2_root" -name msedgewebview2.exe -print -quit 2>/dev/null | g
   exit 1
 fi
 
-
 install -m 0755 "$repo_dir/scripts/nx-studio" "$launcher_dir/nx-studio"
+install -m 0755 "$repo_dir/scripts/check-folder-permissions" \
+  "$launcher_dir/nx-studio-check-folder"
 install -m 0644 "$repo_dir/packaging/nx-studio.desktop" "$desktop_dir/nx-studio.desktop"
 
 if command -v update-desktop-database >/dev/null 2>&1; then

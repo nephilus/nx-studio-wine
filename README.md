@@ -125,6 +125,43 @@ WINEPREFIX="$HOME/.local/share/nx-studio/prefix" wine reg query \
 
 It should report `win7`. Rerun `install.sh` with both installers to repair a missing Runtime or override.
 
+### Adjustments are not saved or folders cannot be created
+
+NX Studio normally saves non-destructive adjustments beside the source image:
+
+```text
+<photo-folder>/NKSC_PARAM/<original-filename>.nksc
+```
+
+The source folder must therefore allow the current Linux user to search the directory and create files and subdirectories. Read-only media, root-owned folders, network shares, restrictive ACLs, and filesystems mounted read-only will prevent adjustments from being saved.
+
+Test a prospective photo folder through the same Wine prefix:
+
+```sh
+nx-studio-check-folder "$HOME/Pictures"
+nx-studio-check-folder "/path/to/photo-folder"
+```
+
+The probe creates, reads, and removes a temporary folder and file. It does not modify photos.
+
+The standard folders verified on the reference system are:
+
+- `C:\users\<user>\Pictures` → `~/Pictures`
+- `C:\users\<user>\Documents` → `~/Documents`
+- `C:\users\<user>\Downloads` → `~/Downloads`
+- `C:\users\<user>\Desktop` → `~/` in this Wine prefix
+
+`~/Pictures` is the recommended library root. NX Studio successfully created and updated `NKSC_PARAM` sidecars there through Wine.
+
+Do not solve permission errors with recursive `chmod 777`. For a Linux-owned folder, restore ownership to the current user and grant only user write access:
+
+```sh
+sudo chown -R "$USER:$USER" "/path/to/photo-folder"
+chmod -R u+rwX "/path/to/photo-folder"
+```
+
+Only run those commands on a folder you own and intend to modify. For removable or network storage, correct its mount options or server permissions instead. System paths such as `/usr`, read-only mounts, and another user's private folders are intentionally not globally writable.
+
 ### UI scale
 
 Wine DPI is prefix-specific. Open Wine configuration for this prefix if NX Studio is too large or too small:
