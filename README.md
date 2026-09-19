@@ -112,15 +112,15 @@ The patched launcher detects and unmaps this internal helper. Do not kill it: NX
 The login flow is rendered by Microsoft Edge WebView2. Confirm that the Runtime exists inside the NX Studio prefix:
 
 ```sh
-find \"$HOME/.local/share/nx-studio/prefix/drive_c/Program Files (x86)/Microsoft/EdgeWebView/Application\" \
+find "$HOME/.local/share/nx-studio/prefix/drive_c/Program Files (x86)/Microsoft/EdgeWebView/Application" \
   -name msedgewebview2.exe
 ```
 
 The tested setup also has this per-application Wine override:
 
 ```sh
-WINEPREFIX=\"$HOME/.local/share/nx-studio/prefix\" wine reg query \
-  'HKCU\\Software\\Wine\\AppDefaults\\msedgewebview2.exe' /v Version
+WINEPREFIX="$HOME/.local/share/nx-studio/prefix" wine reg query \
+  'HKCU\Software\Wine\AppDefaults\msedgewebview2.exe' /v Version
 ```
 
 It should report `win7`. Rerun `install.sh` with both installers to repair a missing Runtime or override.
@@ -143,7 +143,7 @@ This deletes NX Studio's Wine installation and settings:
 rm -rf "$HOME/.local/share/nx-studio/prefix"
 ```
 
-Then rerun `install.sh` with the Nikon installer. Back up any prefix-local data first.
+Then rerun `install.sh` with both the Nikon and WebView2 installers. Back up any prefix-local data first.
 
 ## Scope
 
