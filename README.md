@@ -25,11 +25,10 @@ Wine exposes several NX Studio implementation windows to XWayland:
 - Modal dialogs such as `Export` and `Options`, which Wine may center across the combined X11 desktop instead of over the active monitor.
 - `ImageFrameScreen`: an internal image-rendering helper which can appear as a separate black window.
 
-The included launcher:
+Two launchers keep the workaround isolated:
 
-1. Runs NX Studio in a dedicated Wine prefix.
-2. Keeps the internal `ImageFrameScreen` alive but unmaps its accidental top-level window.
-3. Centers the known top-level `Export` and `Options` dialogs relative to the actual main window. NX Studio also labels popup menus as X11 dialogs, so matching every `_NET_WM_WINDOW_TYPE_DIALOG` would move menus and break pointer hit-testing.
+- `nx-studio` starts NX Studio directly through Wine. Use this on a single monitor or when the compositor already places Wine windows correctly.
+- `nx-studio-hyprland` applies the Hyprland/XWayland multi-monitor workarounds: it unmaps the accidental `ImageFrameScreen` top-level window and centers the known `Export` and `Options` dialogs over the main window. NX Studio also labels popup menus as X11 dialogs, so matching every `_NET_WM_WINDOW_TYPE_DIALOG` would move menus and break pointer hit-testing.
 
 The optional Hyprland rule maximizes NX Studio to the monitor/workspace where it opens.
 
@@ -40,10 +39,16 @@ NX Studio's Nikon ID sign-in and OAuth flow require the **Microsoft Edge WebView
 Arch Linux:
 
 ```sh
-sudo pacman -S wine-staging xdotool
+sudo pacman -S wine-staging
 ```
 
-Also install the 32-bit graphics/audio libraries required by your Wine package. On non-Arch distributions, install equivalent packages for Wine and `xdotool`.
+The Hyprland multi-monitor launcher additionally requires `xdotool`:
+
+```sh
+sudo pacman -S xdotool
+```
+
+Also install the 32-bit graphics/audio libraries required by your Wine package. On non-Arch distributions, install equivalent packages for Wine and, when needed, `xdotool`.
 
 ## Install
 
@@ -61,8 +66,8 @@ Also install the 32-bit graphics/audio libraries required by your Wine package. 
 The installer creates or updates:
 
 - Wine prefix: `~/.local/share/nx-studio/prefix`
-- Launcher: `~/.local/bin/nx-studio`
-- Desktop entry: `~/.local/share/applications/nx-studio.desktop`
+- Launchers: `~/.local/bin/nx-studio` and `~/.local/bin/nx-studio-hyprland`
+- Desktop entries: `NX Studio` and `NX Studio (Hyprland Multi-Monitor)`
 
 The Nikon installer is interactive. Complete it normally. Its bundled Microsoft Visual C++ runtime is supported in the tested prefix. The WebView2 installer runs silently afterward and is required for the Nikon ID/OAuth login window.
 
@@ -85,29 +90,35 @@ If your configuration does not provide Omarchy's `o.window` helper, translate th
 
 ## Run
 
-Launch **NX Studio** from the desktop menu or run:
+Use **NX Studio** or the base command when no window workaround is needed:
 
 ```sh
 nx-studio
 ```
 
-File paths passed to the launcher are forwarded to NX Studio.
+On a Hyprland/XWayland multi-monitor setup affected by misplaced dialogs or the black helper window, use **NX Studio (Hyprland Multi-Monitor)** or:
+
+```sh
+nx-studio-hyprland
+```
+
+Both launchers forward file paths to NX Studio.
 
 ## Troubleshooting
 
 ### A dialog still appears off-screen
 
-Confirm the patched launcher is being used:
+Confirm the Hyprland multi-monitor launcher is being used:
 
 ```sh
-command -v nx-studio
+command -v nx-studio-hyprland
 ```
 
-It should resolve to `~/.local/bin/nx-studio`. `xdotool` and XWayland must be available. The launcher deliberately matches known top-level dialog titles because NX Studio exposes popup menus with the same X11 dialog type.
+It should resolve to `~/.local/bin/nx-studio-hyprland`. `xdotool` and XWayland must be available. The launcher deliberately matches known top-level dialog titles because NX Studio exposes popup menus with the same X11 dialog type.
 
 ### Black `ImageFrameScreen` window
 
-The patched launcher detects and unmaps this internal helper. Do not kill it: NX Studio uses it as part of its rendering implementation.
+The Hyprland multi-monitor launcher detects and unmaps this internal helper. Do not kill it: NX Studio uses it as part of its rendering implementation.
 
 ### Nikon ID/OAuth login is blank
 

@@ -16,7 +16,7 @@ for file in "$installer" "$webview2_installer"; do
   }
 done
 
-for command in wine wineboot xdotool; do
+for command in wine wineboot; do
   command -v "$command" >/dev/null 2>&1 || {
     printf 'Required command not found: %s\n' "$command" >&2
     exit 127
@@ -55,12 +55,17 @@ if ! find "$webview2_root" -name msedgewebview2.exe -print -quit 2>/dev/null | g
 fi
 
 install -m 0755 "$repo_dir/scripts/nx-studio" "$launcher_dir/nx-studio"
+install -m 0755 "$repo_dir/scripts/nx-studio-hyprland" \
+  "$launcher_dir/nx-studio-hyprland"
 install -m 0755 "$repo_dir/scripts/check-folder-permissions" \
   "$launcher_dir/nx-studio-check-folder"
 install -m 0644 "$repo_dir/packaging/nx-studio.desktop" "$desktop_dir/nx-studio.desktop"
+install -m 0644 "$repo_dir/packaging/nx-studio-hyprland.desktop" \
+  "$desktop_dir/nx-studio-hyprland.desktop"
 
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$desktop_dir"
 fi
 
-printf 'NX Studio installed. Launch it with: %s/nx-studio\n' "$launcher_dir"
+printf 'NX Studio installed. Launch normally with: %s/nx-studio\n' "$launcher_dir"
+printf 'Hyprland multi-monitor fixes: %s/nx-studio-hyprland\n' "$launcher_dir"

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=NX Studio (Hyprland Multi-Monitor)
+Comment=Browse and edit Nikon photos with Hyprland multi-monitor fixes
+Exec=nx-studio-hyprland %F
+Icon=applications-graphics
+Terminal=false
+StartupNotify=true
+Categories=Graphics;Photography;
+MimeType=image/jpeg;image/tiff;image/x-nikon-nef;

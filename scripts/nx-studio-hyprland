@@ -1,0 +1,50 @@
+#!/bin/sh
+set -u
+
+export WINEPREFIX="${NX_STUDIO_WINEPREFIX:-$HOME/.local/share/nx-studio/prefix}"
+nx_exe="$WINEPREFIX/drive_c/Program Files/Nikon/NXStudio/NXStudio.exe"
+
+for command in wine xdotool; do
+  command -v "$command" >/dev/null 2>&1 || {
+    printf 'nx-studio-hyprland: required command not found: %s\n' "$command" >&2
+    exit 127
+  }
+done
+if [ ! -f "$nx_exe" ]; then
+  printf 'nx-studio-hyprland: NX Studio is not installed in %s\n' "$WINEPREFIX" >&2
+  exit 1
+fi
+
+wine "$nx_exe" "$@" &
+wine_pid=$!
+hidden_helper=
+
+while kill -0 "$wine_pid" 2>/dev/null; do
+  helper=$(xdotool search --name '^ImageFrameScreen$' 2>/dev/null | tail -n 1)
+  if [ -n "$helper" ] && [ "$helper" != "$hidden_helper" ]; then
+    xdotool windowunmap "$helper"
+    hidden_helper=$helper
+  fi
+
+  main=$(xdotool search --onlyvisible --name '^NX Studio' 2>/dev/null | tail -n 1)
+  if [ -n "$main" ]; then
+    eval "$(xdotool getwindowgeometry --shell "$main")"
+    main_x=$X main_y=$Y main_w=$WIDTH main_h=$HEIGHT
+
+    # NX Studio reports popup menus as dialogs too. Only move the known
+    # top-level dialogs; moving every X11 dialog breaks menu hit-testing.
+    for dialog_title in '^Export$' '^Options$'; do
+      dialog=$(xdotool search --name "$dialog_title" 2>/dev/null | tail -n 1)
+      if [ -n "$dialog" ]; then
+        eval "$(xdotool getwindowgeometry --shell "$dialog")"
+        x=$((main_x + (main_w - WIDTH) / 2))
+        y=$((main_y + (main_h - HEIGHT) / 2))
+        xdotool windowmove "$dialog" "$x" "$y"
+      fi
+    done
+  fi
+
+  sleep 0.2
+done
+
+wait "$wine_pid"
