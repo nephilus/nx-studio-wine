@@ -16,7 +16,7 @@ for file in "$installer" "$webview2_installer"; do
   }
 done
 
-for command in wine wineboot xdotool xprop; do
+for command in wine wineboot xdotool; do
   command -v "$command" >/dev/null 2>&1 || {
     printf 'Required command not found: %s\n' "$command" >&2
     exit 127

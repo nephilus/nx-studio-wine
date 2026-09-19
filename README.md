@@ -27,7 +27,7 @@ The included launcher:
 
 1. Runs NX Studio in a dedicated Wine prefix.
 2. Keeps the internal `ImageFrameScreen` alive but unmaps its accidental top-level window.
-3. Discovers every NX Studio X11 window marked `_NET_WM_WINDOW_TYPE_DIALOG` and centers it relative to the actual main window. No dialog titles are hard-coded.
+3. Centers the known top-level `Export` and rename-error dialogs relative to the actual main window. NX Studio also labels popup menus as X11 dialogs, so matching every `_NET_WM_WINDOW_TYPE_DIALOG` would move menus and break pointer hit-testing.
 
 The optional Hyprland rule maximizes NX Studio to the monitor/workspace where it opens.
 
@@ -38,7 +38,7 @@ NX Studio's Nikon ID sign-in and OAuth flow require the **Microsoft Edge WebView
 Arch Linux:
 
 ```sh
-sudo pacman -S wine-staging xdotool xorg-xprop
+sudo pacman -S wine-staging xdotool
 ```
 
 Also install the 32-bit graphics/audio libraries required by your Wine package. On non-Arch distributions, install equivalent packages for Wine and `xdotool`.
@@ -101,7 +101,7 @@ Confirm the patched launcher is being used:
 command -v nx-studio
 ```
 
-It should resolve to `~/.local/bin/nx-studio`. `xdotool`, `xprop`, and XWayland must be available. The launcher discovers dialogs through their standard X11 window type rather than matching fixed titles.
+It should resolve to `~/.local/bin/nx-studio`. `xdotool` and XWayland must be available. The launcher deliberately matches known top-level dialog titles because NX Studio exposes popup menus with the same X11 dialog type.
 
 ### Black `ImageFrameScreen` window
 
@@ -153,7 +153,7 @@ The standard folders verified on the reference system are:
 
 `~/Pictures` is the recommended library root. NX Studio successfully created and updated `NKSC_PARAM` sidecars there through Wine.
 
-NX Studio 1.10.1 can still report `Error Renaming File/Folder` for a writable folder that it currently has open. This is an NX Studio/Wine file-handle behavior, not a Linux permission failure: the same rename succeeds through Wine's `cmd.exe`. Close NX Studio or navigate away from the folder, rename it with the Linux file manager or `mv`, then reopen or refresh NX Studio. The generic dialog handler keeps this error accessible on the same monitor.
+NX Studio 1.10.1 can still report `Error Renaming File/Folder` for a writable folder that it currently has open. This is an NX Studio/Wine file-handle behavior, not a Linux permission failure: the same rename succeeds through Wine's `cmd.exe`. Close NX Studio or navigate away from the folder, rename it with the Linux file manager or `mv`, then reopen or refresh NX Studio. The launcher keeps this error accessible on the same monitor.
 
 Do not solve permission errors with recursive `chmod 777`. For a Linux-owned folder, restore ownership to the current user and grant only user write access:
 
