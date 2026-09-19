@@ -17,17 +17,19 @@ Other recent Wine and Hyprland versions may work but have not been verified.
 
 ## What the patches fix
 
+The window-placement workarounds below are specifically for NX Studio under Hyprland/XWayland with multiple monitors. They are not general Wine desktop fixes and may be unnecessary under other compositors or a single-monitor setup.
+
 Wine exposes several NX Studio implementation windows to XWayland:
 
 - `NX Studio`: the main application window.
-- Modal dialogs such as `Export` and error panes, which Wine may center across the combined X11 desktop instead of over the active monitor.
+- Modal dialogs such as `Export` and `Options`, which Wine may center across the combined X11 desktop instead of over the active monitor.
 - `ImageFrameScreen`: an internal image-rendering helper which can appear as a separate black window.
 
 The included launcher:
 
 1. Runs NX Studio in a dedicated Wine prefix.
 2. Keeps the internal `ImageFrameScreen` alive but unmaps its accidental top-level window.
-3. Centers the known top-level `Export` and rename-error dialogs relative to the actual main window. NX Studio also labels popup menus as X11 dialogs, so matching every `_NET_WM_WINDOW_TYPE_DIALOG` would move menus and break pointer hit-testing.
+3. Centers the known top-level `Export` and `Options` dialogs relative to the actual main window. NX Studio also labels popup menus as X11 dialogs, so matching every `_NET_WM_WINDOW_TYPE_DIALOG` would move menus and break pointer hit-testing.
 
 The optional Hyprland rule maximizes NX Studio to the monitor/workspace where it opens.
 
@@ -153,7 +155,7 @@ The standard folders verified on the reference system are:
 
 `~/Pictures` is the recommended library root. NX Studio successfully created and updated `NKSC_PARAM` sidecars there through Wine.
 
-NX Studio 1.10.1 can still report `Error Renaming File/Folder` for a writable folder that it currently has open. This is an NX Studio/Wine file-handle behavior, not a Linux permission failure: the same rename succeeds through Wine's `cmd.exe`. Close NX Studio or navigate away from the folder, rename it with the Linux file manager or `mv`, then reopen or refresh NX Studio. The launcher keeps this error accessible on the same monitor.
+NX Studio 1.10.1 can still report `Error Renaming File/Folder` for a writable folder that it currently has open. This is an NX Studio/Wine file-handle behavior, not a Linux permission failure: the same rename succeeds through Wine's `cmd.exe`. Close NX Studio or navigate away from the folder, rename it with the Linux file manager or `mv`, then reopen or refresh NX Studio.
 
 Do not solve permission errors with recursive `chmod 777`. For a Linux-owned folder, restore ownership to the current user and grant only user write access:
 
@@ -191,7 +193,7 @@ Validated workflows:
 - Browse Nikon NEF files.
 - Render image previews.
 - Maximize NX Studio on a selected monitor.
-- Open and interact with the Export dialog on a multi-monitor Hyprland desktop.
+- Open and interact with the Export and Options dialogs on a multi-monitor Hyprland desktop.
 
 Camera transfer, Nikon cloud services, video editing, GPU acceleration, printing, and color-managed production workflows have not been comprehensively validated.
 

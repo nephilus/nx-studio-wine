@@ -33,7 +33,7 @@ while kill -0 "$wine_pid" 2>/dev/null; do
 
     # NX Studio reports popup menus as dialogs too. Only move the known
     # top-level dialogs; moving every X11 dialog breaks menu hit-testing.
-    for dialog_title in '^Export$' '^Error Renaming File/Folder$'; do
+    for dialog_title in '^Export$' '^Options$'; do
       dialog=$(xdotool search --name "$dialog_title" 2>/dev/null | tail -n 1)
       if [ -n "$dialog" ]; then
         eval "$(xdotool getwindowgeometry --shell "$dialog")"
