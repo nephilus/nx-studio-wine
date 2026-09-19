@@ -69,6 +69,8 @@ The installer creates or updates:
 - Launchers: `~/.local/bin/nx-studio` and `~/.local/bin/nx-studio-hyprland`
 - Desktop entries: `NX Studio` and `NX Studio (Hyprland Multi-Monitor)`
 
+Only the plain `NX Studio` desktop entry registers as a photo MIME handler. Opening a photo from a file manager therefore uses the launcher without Hyprland-specific workarounds; select the Hyprland entry explicitly when those workarounds are required.
+
 The Nikon installer is interactive. Complete it normally. Its bundled Microsoft Visual C++ runtime is supported in the tested prefix. The WebView2 installer runs silently afterward and is required for the Nikon ID/OAuth login window.
 
 ## Hyprland

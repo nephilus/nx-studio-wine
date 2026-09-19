@@ -7,4 +7,3 @@ Icon=applications-graphics
 Terminal=false
 StartupNotify=true
 Categories=Graphics;Photography;
-MimeType=image/jpeg;image/tiff;image/x-nikon-nef;
