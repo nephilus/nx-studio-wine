@@ -4,14 +4,12 @@ set -u
 export WINEPREFIX="${NX_STUDIO_WINEPREFIX:-$HOME/.local/share/nx-studio/prefix}"
 nx_exe="$WINEPREFIX/drive_c/Program Files/Nikon/NXStudio/NXStudio.exe"
 
-if ! command -v wine >/dev/null 2>&1; then
-  printf '%s\n' 'nx-studio: wine is required' >&2
-  exit 127
-fi
-if ! command -v xdotool >/dev/null 2>&1; then
-  printf '%s\n' 'nx-studio: xdotool is required for Wine window fixes' >&2
-  exit 127
-fi
+for command in wine xdotool xprop; do
+  command -v "$command" >/dev/null 2>&1 || {
+    printf 'nx-studio: required command not found: %s\n' "$command" >&2
+    exit 127
+  }
+done
 if [ ! -f "$nx_exe" ]; then
   printf 'nx-studio: NX Studio is not installed in %s\n' "$WINEPREFIX" >&2
   exit 1
@@ -33,14 +31,18 @@ while kill -0 "$wine_pid" 2>/dev/null; do
     eval "$(xdotool getwindowgeometry --shell "$main")"
     main_x=$X main_y=$Y main_w=$WIDTH main_h=$HEIGHT
 
-    for dialog_title in '^Export$' '^Error Renaming File/Folder$'; do
-      dialog=$(xdotool search --name "$dialog_title" 2>/dev/null | tail -n 1)
-      if [ -n "$dialog" ]; then
-        eval "$(xdotool getwindowgeometry --shell "$dialog")"
-        x=$((main_x + (main_w - WIDTH) / 2))
-        y=$((main_y + (main_h - HEIGHT) / 2))
-        xdotool windowmove "$dialog" "$x" "$y"
-      fi
+    clients=$(xprop -root _NET_CLIENT_LIST_STACKING 2>/dev/null |
+      cut -d '#' -f 2- | tr ',' ' ')
+    for dialog in $clients; do
+      properties=$(xprop -id "$dialog" _NET_WM_WINDOW_TYPE _NET_WM_PID 2>/dev/null)
+      case $properties in
+        *"_NET_WM_WINDOW_TYPE_DIALOG"*"_NET_WM_PID(CARDINAL) = $wine_pid"*)
+          eval "$(xdotool getwindowgeometry --shell "$dialog")"
+          x=$((main_x + (main_w - WIDTH) / 2))
+          y=$((main_y + (main_h - HEIGHT) / 2))
+          xdotool windowmove "$dialog" "$x" "$y"
+          ;;
+      esac
     done
   fi
 
